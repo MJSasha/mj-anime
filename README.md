@@ -1,8 +1,8 @@
 # MJAnime
 
-Android TV-клиент для AniMetka: поиск, аниме и связанные сезоны, история, списки, HLS/MP4-плеер, пропуск опенингов и опциональная обработка изображения. Интерфейс рассчитан на пульт и Full HD.
+Приложение для просмотра аниме на Android TV: поиск, аниме и связанные сезоны, история, списки, HLS/MP4-плеер, пропуск опенингов и опциональная обработка изображения. Интерфейс рассчитан на пульт и Full HD.
 
-Flutter **3.50.0** / Dart **3.14.0**, Kotlin, локальный fork `video_player_android` с Media3. Android API 24+, ARMv7/ARM64. Package: `dev.independent.animetka_tv`. Текущая версия задаётся только в [pubspec.yaml](pubspec.yaml).
+Flutter **3.50.0** / Dart **3.14.0**, Kotlin, локальный fork `video_player_android` с Media3. Android API 24+, ARMv7/ARM64. Текущая версия задаётся только в [pubspec.yaml](pubspec.yaml).
 
 ## Начать работу
 
