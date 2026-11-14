@@ -40,7 +40,9 @@ def main():
     package = re.search(r"package: name='([^']+)' versionCode='(\d+)' versionName='([^']+)'", badging)
     if not package or package.groups() != ('dev.independent.animetka_tv', str(code), name):
         raise SystemExit('Unexpected APK package/version')
-    if 'application-debuggable' in badging or "native-code: 'armeabi-v7a' 'arm64-v8a'" not in badging:
+    abi_line = re.search(r'^native-code: (.+)$', badging, re.M)
+    abis = set(re.findall(r"'([^']+)'", abi_line.group(1))) if abi_line else set()
+    if 'application-debuggable' in badging or abis != {'armeabi-v7a', 'arm64-v8a'}:
         raise SystemExit('Unexpected APK debug flag or ABIs')
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

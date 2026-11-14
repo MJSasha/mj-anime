@@ -200,7 +200,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
   Widget build(BuildContext context) {
     final release = widget.updates.available;
     return PopScope(
-      canPop: !busy,
+      canPop: !downloading,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop && downloading) widget.updates.cancel();
       },
@@ -252,11 +252,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
         actions: [
           labelButton(
             downloading ? 'Отменить загрузку' : 'Закрыть',
-            downloading
-                ? widget.updates.cancel
-                : busy
-                ? null
-                : () => Navigator.pop(context),
+            downloading ? widget.updates.cancel : () => Navigator.pop(context),
             focusNode: closeFocus,
             autofocus: true,
           ),

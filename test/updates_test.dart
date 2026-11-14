@@ -1,3 +1,8 @@
+import 'dart:async';
+
+import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:animetka_tv/ui.dart';
 import 'package:animetka_tv/updates.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -96,6 +101,74 @@ void main() {
       await failing.automaticCheck();
       await failing.automaticCheck();
       expect(tries, 1);
+    },
+  );
+  testWidgets(
+    'remote check returns focus; Back cancels download before closing',
+    (t) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final download = Completer<void>();
+      var cancelled = false;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(updateChannel, (call) async {
+            if (call.method == 'versionCode') return 16;
+            if (call.method == 'downloadAndInstall') {
+              await download.future;
+              return null;
+            }
+            if (call.method == 'cancel') {
+              cancelled = true;
+              download.completeError(PlatformException(code: 'cancelled'));
+            }
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(updateChannel, null),
+      );
+      final updates = AppUpdates(
+        prefs,
+        fetch: () async => AppRelease.parse(manifest),
+      );
+      await t.pumpWidget(
+        MaterialApp(
+          theme: mjTheme(light: false),
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                autofocus: true,
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) =>
+                      UpdateDialog(updates: updates, currentVersion: '1.7.0'),
+                ),
+                child: const Text('Open updates'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pumpAndSettle();
+      expect(FocusManager.instance.primaryFocus?.debugLabel, 'Close updates');
+      await t.tap(find.text('Проверить'));
+      await t.pumpAndSettle();
+      expect(find.textContaining('Доступна 1.8.0'), findsOneWidget);
+      expect(FocusManager.instance.primaryFocus?.debugLabel, 'Close updates');
+      await t.tap(find.text('Скачать и установить'));
+      await t.pump();
+      expect(find.text('Отменить загрузку'), findsOneWidget);
+      await t.binding.handlePopRoute();
+      await t.pumpAndSettle();
+      expect(cancelled, isTrue);
+      expect(find.text('Загрузка отменена.'), findsOneWidget);
+      expect(FocusManager.instance.primaryFocus?.debugLabel, 'Close updates');
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pumpAndSettle();
+      expect(find.byType(UpdateDialog), findsNothing);
+      expect(find.text('Open updates'), findsOneWidget);
     },
   );
 }

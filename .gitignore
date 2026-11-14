@@ -77,3 +77,6 @@ dist/
 **/local.properties
 **/GeneratedPluginRegistrant.java
 **/.cxx/
+
+# Kotlin incremental compilation cache
+**/.kotlin/

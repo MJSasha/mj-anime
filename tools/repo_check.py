@@ -17,7 +17,7 @@ DOCS = ['AGENTS.md', 'README.md', 'STATUS.md', 'docs/ARCHITECTURE.md', 'docs/DEV
 
 def forbidden(name):
     p = Path(name)
-    if any(part in {'.signing', '.dart_tool', '.gradle', 'build', 'dist', 'test-output', '__pycache__'} for part in p.parts):
+    if any(part in {'.signing', '.dart_tool', '.gradle', '.kotlin', 'build', 'dist', 'test-output', '__pycache__'} for part in p.parts):
         return True
     return (p.name in {'local.properties', 'key.properties'}
             or (p.name.startswith('.env') and p.name != '.env.example')
