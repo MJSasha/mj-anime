@@ -12,3 +12,5 @@ python3 tools/setup_signing.py
 "$flutter_bin" test
 "$flutter_bin" build apk --release --target-platform android-arm,android-arm64
 python3 tools/package_release.py
+cp build/app/outputs/flutter-apk/app-release.apk dist/MJAnime.apk
+cp build/app/outputs/flutter-apk/app-release.apk dist/animetka-tv-independent.apk

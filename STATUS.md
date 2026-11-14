@@ -40,3 +40,11 @@ FPS/совместимость GPU Xiaomi L1 Pro, работу аккаунта 
 - `make native-test`: 19 JVM-тестов — Media3, Back, package/version/signature, HTTPS и допустимые redirect, SHA-256, повреждение/обрыв/переполнение/отмена загрузки.
 - Окно обновлений: открытие пультом, возврат фокуса после проверки, Back отменяет загрузку, повторный OK закрывает окно.
 - `origin` — `MJSasha/mj-anime`. Прежний ключ сохранён в зашифрованных Actions Secrets с явного согласия владельца; в Git его нет.
+
+## Опубликованный выпуск 1.8.0
+
+- [Checks](https://github.com/MJSasha/mj-anime/actions/runs/43642308138) и [Release APK](https://github.com/MJSasha/mj-anime/actions/runs/43642981344) завершились успешно. [v1.8.0](https://github.com/MJSasha/mj-anime/releases/tag/v1.8.0) содержит подписанный APK, `SHA256SUMS`, `update.json`.
+- Производственные Dart metadata reader и Kotlin downloader проверены с компьютера на реальном публичном релизе GitHub: HTTPS-перенаправления, размер и SHA-256 совпали. Аккаунт и API приложения не использовались.
+- **Именно APK из GitHub**, без пересборки, установлен в собственном Android 11/API 30 AVD без сети/звука. Off, Light, CNN S и CNN M: движущееся встроенное H.264 720p, одна инициализация декодера, CNN без fallback.
+- SHA-256 опубликованного и проверенного APK: `e584e94a7e8a5582cbb15e3cbe192744ae1fb05a1fae73c7d8cefe41237b3450`. Package, версия 1.8.0+17, ARMv7/ARM64 и прежний сертификат дополнительно проверены локально.
+- Окно обновлений закреплено регрессией в TV-разрешении 1280×720: только стрелки, OK и Back. Полная установка через системное подтверждение Android TV и FPS реального проектора этими проверками не подтверждены.

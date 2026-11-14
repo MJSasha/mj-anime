@@ -108,6 +108,10 @@ void main() {
     (t) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
+      t.view.physicalSize = const Size(1280, 720);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
       final download = Completer<void>();
       var cancelled = false;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -153,11 +157,17 @@ void main() {
       await t.sendKeyEvent(LogicalKeyboardKey.enter);
       await t.pumpAndSettle();
       expect(FocusManager.instance.primaryFocus?.debugLabel, 'Close updates');
-      await t.tap(find.text('Проверить'));
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.pump();
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
       await t.pumpAndSettle();
       expect(find.textContaining('Доступна 1.8.0'), findsOneWidget);
       expect(FocusManager.instance.primaryFocus?.debugLabel, 'Close updates');
-      await t.tap(find.text('Скачать и установить'));
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.pump();
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.pump();
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
       await t.pump();
       expect(find.text('Отменить загрузку'), findsOneWidget);
       await t.binding.handlePopRoute();
