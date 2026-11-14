@@ -10,4 +10,4 @@ cd android
 ./gradlew :video_player_android:testDebugUnitTest \
   --tests '*UpscaleSurfaceTest' --tests '*ProcessedVideoSizeTest'
 
-./gradlew :app:testDebugUnitTest --tests '*NativeRecoveryTest'
+./gradlew :app:testDebugUnitTest --tests '*NativeRecoveryTest' --tests '*ReleaseDownloadTest'

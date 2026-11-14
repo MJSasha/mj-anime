@@ -1,7 +1,7 @@
 name: animetka_tv
 description: Independent Android TV client compatible with the researched Animetka API.
 publish_to: none
-version: 1.7.0+16
+version: 1.8.0+17
 environment:
   sdk: ^3.14.0
 dependencies:

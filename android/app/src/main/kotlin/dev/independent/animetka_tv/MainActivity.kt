@@ -25,6 +25,7 @@ class MainActivity : FlutterActivity() {
     private var speechResult: MethodChannel.Result? = null
     private var updateResult: MethodChannel.Result? = null
     private var updateFile: File? = null
+    @Volatile private var cancelDownload = false
 
     // Deliver exactly one route-pop for the full remote Back key pair.
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -40,6 +41,54 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(engine: FlutterEngine) {
         super.configureFlutterEngine(engine)
+        MethodChannel(engine.dartExecutor.binaryMessenger, "dev.mjanime/updates")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "versionCode" -> {
+                        val info = packageManager.getPackageInfo(packageName, 0)
+                        @Suppress("DEPRECATION")
+                        val code = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
+                        result.success(code)
+                    }
+                    "cancel" -> { cancelDownload = true; result.success(null) }
+                    "downloadAndInstall" -> {
+                        if (updateResult != null) {
+                            result.error("busy", "Обновление уже запущено", null)
+                        } else {
+                            val url = call.argument<String>("url") ?: ""
+                            val hash = call.argument<String>("sha256") ?: ""
+                            val size = call.argument<Number>("size")?.toLong() ?: 0L
+                            try {
+                                ReleaseDownload.validateUrl(url, true)
+                                ReleaseDownload.validateMetadata(size, hash)
+                                cancelDownload = false
+                                updateResult = result
+                                Thread {
+                                    val file = File(cacheDir, "github-update.apk")
+                                    try {
+                                        ReleaseDownload.download(url, size, hash, file) { cancelDownload || isDestroyed }
+                                        checkUpdate(file)
+                                        runOnUiThread {
+                                            if (cancelDownload || isDestroyed) {
+                                                file.delete()
+                                                finishUpdate("Загрузка отменена")
+                                            } else {
+                                                updateFile = file
+                                                try { installUpdate(file) }
+                                                catch (e: Exception) { file.delete(); updateFile = null; finishUpdate(e.message) }
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        file.delete()
+                                        runOnUiThread { finishUpdate(if (cancelDownload) "Загрузка отменена" else e.message ?: "Ошибка загрузки") }
+                                    }
+                                }.start()
+                            } catch (e: Exception) { result.error("update", e.message, null) }
+                        }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
         MethodChannel(engine.dartExecutor.binaryMessenger, "dev.independent.animetka/native")
             .setMethodCallHandler { call, result ->
                 val audio = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -93,6 +142,7 @@ class MainActivity : FlutterActivity() {
                             result.error("busy", "Установка уже запущена", null)
                             return@setMethodCallHandler
                         }
+                        cancelDownload = false
                         updateResult = result
                         try {
                             startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
@@ -209,7 +259,7 @@ class MainActivity : FlutterActivity() {
         }
         if (requestCode == 68) {
             val file = updateFile
-            if (file == null || (Build.VERSION.SDK_INT >= 26 && !packageManager.canRequestPackageInstalls())) {
+            if (cancelDownload || file == null || (Build.VERSION.SDK_INT >= 26 && !packageManager.canRequestPackageInstalls())) {
                 file?.delete(); updateFile = null; finishUpdate("Установка обновлений не разрешена")
             } else installUpdate(file)
         }
@@ -221,6 +271,7 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        cancelDownload = true
         speechResult?.success(null); speechResult = null
         updateResult?.success(null); updateResult = null
         super.onDestroy()

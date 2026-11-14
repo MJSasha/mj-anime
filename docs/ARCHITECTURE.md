@@ -29,6 +29,7 @@ PlayerScreen → video_player → локальный video_player_android → Me
 | HTTP, JSON, Session, история | `lib/api.dart` | `widget_test`, `cinema_test`, `auth_test` |
 | Вход и нативный MethodChannel | `lib/auth.dart`, `android/app/src/main/kotlin/dev/independent/animetka_tv/MainActivity.kt` | `auth_test`, `full_tv_fixes_test` |
 | Профиль, фильтры | `lib/account.dart`, `lib/filters.dart` | `full_tv_fixes_test` |
+| GitHub обновления | `lib/updates.dart`, `ReleaseDownload.kt`, существующий установщик `MainActivity.kt` | `updates_test`, `ReleaseDownloadTest`, `NativeRecoveryTest` |
 | Cast и защита от чужих событий | `lib/cast.dart` | `cast_protocol_test`, `cast_navigation_test` |
 | Селектор/канал GPU | `lib/anime_upscale.dart` | `anime_upscale_test`, `remote_navigation_test` |
 | Реальная локальная проверка APK | `lib/local_video_check.dart`, `assets/video_check.mp4` | `tools/apk_smoke.py` |

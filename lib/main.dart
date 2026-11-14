@@ -16,6 +16,7 @@ import 'ui.dart';
 import 'anime_upscale.dart';
 import 'local_video_check.dart';
 import 'cinema.dart';
+import 'updates.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,14 +30,24 @@ Future<void> main() async {
   final checkMode = await platform.invokeMethod<String>('videoCheckMode');
   if (checkMode != null) await prefs.setString(upscalePreference, checkMode);
   runApp(
-    TvApp(session: Session(prefs, Api()), videoCheckOnly: checkMode != null),
+    TvApp(
+      session: Session(prefs, Api()),
+      videoCheckOnly: checkMode != null,
+      updates: checkMode == null ? AppUpdates(prefs) : null,
+    ),
   );
 }
 
 class TvApp extends StatefulWidget {
   final Session session;
   final bool videoCheckOnly;
-  const TvApp({super.key, required this.session, this.videoCheckOnly = false});
+  final AppUpdates? updates;
+  const TvApp({
+    super.key,
+    required this.session,
+    this.videoCheckOnly = false,
+    this.updates,
+  });
   @override
   State<TvApp> createState() => _TvAppState();
 }
@@ -115,6 +126,7 @@ class _TvAppState extends State<TvApp> {
             session: widget.session,
             onLogin: () => setState(() => login = true),
             onTheme: toggleTheme,
+            updates: widget.updates,
           ),
   );
 }
@@ -122,11 +134,13 @@ class _TvAppState extends State<TvApp> {
 class Shell extends StatefulWidget {
   final Session session;
   final VoidCallback onLogin, onTheme;
+  final AppUpdates? updates;
   const Shell({
     super.key,
     required this.session,
     required this.onLogin,
     required this.onTheme,
+    this.updates,
   });
   @override
   State<Shell> createState() => _ShellState();
@@ -161,6 +175,9 @@ class _ShellState extends State<Shell> {
     super.initState();
     data = load();
     readAppVersion();
+    widget.updates?.automaticCheck().then((_) {
+      if (mounted) setState(() {});
+    });
     cast = CastTransport(widget.session);
     castSubscription = cast.events.stream.listen(remoteEvent);
     cast.connect();
@@ -1244,7 +1261,9 @@ class _ShellState extends State<Shell> {
             runSpacing: 12,
             children: [
               labelButton(
-                'Обновление MJAnime',
+                widget.updates?.available == null
+                    ? 'Обновление MJAnime'
+                    : 'Доступно обновление ${widget.updates!.available!.version}',
                 updates,
                 icon: Icons.system_update_outlined,
               ),
@@ -1292,6 +1311,16 @@ class _ShellState extends State<Shell> {
   }
 
   Future<void> updates() async {
+    final updater = widget.updates;
+    if (updater != null) {
+      await showDialog(
+        context: context,
+        builder: (_) =>
+            UpdateDialog(updates: updater, currentVersion: appVersion),
+      );
+      if (mounted) setState(() {});
+      return;
+    }
     await showDialog(
       context: context,
       builder: (d) => AlertDialog(
