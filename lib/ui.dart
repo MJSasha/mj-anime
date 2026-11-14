@@ -311,11 +311,32 @@ Widget labelButton(
   ),
 );
 Widget tabButton(String text, VoidCallback? action, {bool selected = false}) =>
-    TvButton(
-      onPressed: action,
-      selected: selected,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-      child: Text(text, style: const TextStyle(fontSize: 17)),
+    Builder(
+      builder: (context) => Semantics(
+        selected: selected,
+        child: TvButton(
+          onPressed: action,
+          subtle: true,
+          borderRadius: BorderRadius.circular(8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: selected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 7),
+              child: Text(text, style: const TextStyle(fontSize: 17)),
+            ),
+          ),
+        ),
+      ),
     );
 Widget primaryButton(
   String text,
@@ -339,32 +360,39 @@ Widget primaryButton(
     ],
   ),
 );
-Widget photo(String url, {BoxFit fit = BoxFit.cover}) => url.isEmpty
-    ? const ColoredBox(
-        color: surface,
-        child: Center(
-          child: Icon(Icons.movie_outlined, size: 40, color: muted),
-        ),
-      )
-    : LayoutBuilder(
-        builder: (context, bounds) => Image.network(
-          absolute(url),
-          cacheWidth: bounds.hasBoundedWidth
-              ? (bounds.maxWidth * MediaQuery.devicePixelRatioOf(context))
-                    .ceil()
-                    .clamp(1, 1920)
-              : null,
-          filterQuality: FilterQuality.low,
-          fit: fit,
-          headers: const {'User-Agent': 'Dart/3.14 (dart:io)'},
-          errorBuilder: (_, _, _) => const ColoredBox(
-            color: surface,
-            child: Center(
-              child: Icon(Icons.movie_outlined, size: 40, color: muted),
-            ),
+Widget photo(
+  String url, {
+  BoxFit fit = BoxFit.cover,
+  Iterable<String> fallbacks = const [],
+}) {
+  final candidates = [
+    url,
+    ...fallbacks,
+  ].where((s) => s.trim().isNotEmpty).toSet().toList();
+  const empty = ColoredBox(
+    color: surface,
+    child: Center(child: Icon(Icons.movie_outlined, size: 40, color: muted)),
+  );
+  Widget load(int index) => index >= candidates.length
+      ? empty
+      : LayoutBuilder(
+          builder: (context, bounds) => Image.network(
+            absolute(candidates[index]),
+            key: ValueKey(candidates[index]),
+            cacheWidth: bounds.hasBoundedWidth
+                ? (bounds.maxWidth * MediaQuery.devicePixelRatioOf(context))
+                      .ceil()
+                      .clamp(1, 1920)
+                : null,
+            filterQuality: FilterQuality.low,
+            fit: fit,
+            headers: const {'User-Agent': 'Dart/3.14 (dart:io)'},
+            errorBuilder: (_, _, _) => load(index + 1),
           ),
-        ),
-      );
+        );
+  return load(0);
+}
+
 String userError(Object error) {
   if (error is PlatformException) {
     return error.message?.isNotEmpty == true

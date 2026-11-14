@@ -443,6 +443,26 @@ class _DetailsState extends State<DetailsScreen> {
                                           ],
                                         ),
                                       ),
+                                      if (resumeEntry != null) ...[
+                                        const SizedBox(width: 8),
+                                        Tooltip(
+                                          message: 'С первой серии',
+                                          child: Semantics(
+                                            label: 'С первой серии',
+                                            child: TvButton(
+                                              subtle: true,
+                                              onPressed: eps.isEmpty
+                                                  ? null
+                                                  : () => play(0),
+                                              padding: const EdgeInsets.all(12),
+                                              child: const Icon(
+                                                Icons.restart_alt_rounded,
+                                                size: 24,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                       const SizedBox(width: 12),
                                       labelButton(
                                         'В список',
@@ -596,48 +616,71 @@ class _DetailsState extends State<DetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            SizedBox(
-              width: 310,
-              child: TvButton(
-                onPressed: voices,
+        SizedBox(
+          height: 48,
+          child: Row(
+            children: [
+              Text(
+                'Серии · ${eps.length}',
+                style: TextStyle(
+                  fontSize: 17,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 260),
+                child: Tooltip(
+                  message: 'Озвучка',
+                  child: TvButton(
+                    subtle: true,
+                    onPressed: translations.isEmpty ? null : voices,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.graphic_eq_rounded, size: 20),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            '${voice?['name'] ?? 'Выбрать озвучку'}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.expand_more_rounded, size: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              TvButton(
+                subtle: true,
+                onPressed: () => setState(() => descending = !descending),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.graphic_eq_rounded),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Озвучка: ${voice?['name'] ?? 'Выбрать'}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 16),
-                      ),
+                    const Icon(Icons.sort_rounded, size: 20),
+                    const SizedBox(width: 10),
+                    Text(
+                      descending ? 'Сначала новые' : 'Сначала старые',
+                      style: const TextStyle(fontSize: 16),
                     ),
                   ],
                 ),
               ),
-            ),
-            if (resumeEntry != null)
-              labelButton(
-                'С первой серии',
-                eps.isEmpty ? null : () => play(0),
-                icon: Icons.restart_alt_rounded,
-              ),
-            Text(
-              'Серии · ${eps.length}',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            labelButton(
-              descending ? 'Сначала новые' : 'Сначала старые',
-              () => setState(() => descending = !descending),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         Expanded(

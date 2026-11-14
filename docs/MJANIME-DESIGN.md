@@ -28,3 +28,10 @@ The user selected [this Cinema design board](design/cinema-reference.png). It is
 - Episodes always have a permanent number plus caption.
 - Search uses the actual OS input method; do not reproduce the illustrated key layout yourself.
 - Existing filters, categories, related seasons, voices, frames and characters remain functional even when omitted from the illustrative board.
+
+## TV refinements (1.8.1)
+
+- Categories retain the continue-watching shelf when switching: their bounds and remote focus must not jump.
+- Tabs use text and an active underline; focus keeps its outline. Episode voice/sort controls are compact, with no fixed gap between a short voice name and its arrow. Restart belongs next to the main play action.
+- The home hero follows the focused title itself, even if absent from the current catalog. Artwork falls through that title's backdrop, screenshots and poster on missing/broken images; no unrelated title is substituted.
+- The user's later correction allows a short 80 dp fade of the bottom image edge into the background. Preserve the bright upper/right image and the local lower-left control scrim; do not darken the whole image.

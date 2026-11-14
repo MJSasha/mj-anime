@@ -5,28 +5,35 @@ import 'api.dart';
 import 'ui.dart';
 import 'tv_playback.dart' show playbackTime;
 
-/// Landscape artwork supplied by the catalog, with a real poster as fallback.
-String scenery(Json anime) {
+/// Only this title's artwork: backdrop → screenshots → poster.
+List<String> sceneryImages(Json anime) {
+  final images = <String>[];
+  void add(dynamic value) {
+    if (value is String && value.trim().isNotEmpty) images.add(value.trim());
+  }
+
   for (final key in [
-    'anime_screenshot_url',
-    'screenshot_url',
     'backdrop_url',
     'banner_url',
+    'anime_screenshot_url',
+    'screenshot_url',
     'image',
     'screenshot',
   ]) {
-    final value = anime[key];
-    if (value is String && value.isNotEmpty) return value;
+    add(anime[key]);
   }
   final shots = anime['screenshots'];
-  if (shots is List && shots.isNotEmpty) {
-    final first = shots.first;
-    if (first is String && first.isNotEmpty) return first;
-    final url = object(first)['url'];
-    if (url is String && url.isNotEmpty) return url;
+  if (shots is List) {
+    for (final shot in shots.take(3)) {
+      add(shot is String ? shot : object(shot)['url']);
+    }
   }
-  return poster(anime);
+  add(anime['anime_poster_url']);
+  add(anime['poster_url']);
+  return images.toSet().toList();
 }
+
+String scenery(Json anime) => sceneryImages(anime).firstOrNull ?? '';
 
 class CinemaRail extends StatelessWidget {
   final int section;

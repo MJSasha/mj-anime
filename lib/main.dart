@@ -340,6 +340,12 @@ class _ShellState extends State<Shell> {
     });
   }
 
+  void focusTitle(Json anime) {
+    if (animeId(focusedTitle ?? {}) != animeId(anime)) {
+      setState(() => focusedTitle = anime);
+    }
+  }
+
   void open(Json a) async {
     if (animeId(a) == 0) {
       query = '${a['russian'] ?? a['title'] ?? a['name'] ?? ''}';
@@ -663,24 +669,48 @@ class _ShellState extends State<Shell> {
   );
 
   Widget home(List<Json> items) {
-    final featured =
-        items
-            .where((a) => animeId(a) == animeId(focusedTitle ?? {}))
-            .firstOrNull ??
-        items.first;
+    final selected = focusedTitle;
+    final catalogTitle = selected == null
+        ? items.first
+        : animeId(selected) <= 0
+        ? null
+        : items.where((a) => animeId(a) == animeId(selected)).firstOrNull;
+    final featured = {...?catalogTitle, ...?selected};
+    final artwork = sceneryImages(featured);
     final recent = widget.session.recentHistory(widget.session.localHistory);
-    final hasRecent = recent.isNotEmpty && tab == 0;
+    final hasRecent = recent.isNotEmpty;
     final shelf = hasRecent ? recent : items;
     final colors = Theme.of(context).colorScheme;
     return ListView(
+      key: const ValueKey('home-scroll'),
       padding: EdgeInsets.zero,
       children: [
         SizedBox(
+          key: const ValueKey('home-hero'),
           height: 420,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              photo(scenery(featured)),
+              photo(artwork.firstOrNull ?? '', fallbacks: artwork.skip(1)),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 80,
+                child: DecoratedBox(
+                  key: const ValueKey('hero-bottom-blend'),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        colors.surface.withValues(alpha: 0),
+                        colors.surface,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               ClipRect(
                 child: Transform.scale(
                   scaleX: 1.7,
@@ -761,16 +791,12 @@ class _ShellState extends State<Shell> {
               SizedBox(
                 height: 230,
                 child: AnimeCarousel(
-                  key: ValueKey('home-$tab'),
+                  key: ValueKey(hasRecent ? 'home-recent' : 'home-$tab'),
                   items: shelf,
                   onOpen: open,
                   autofocus: false,
                   onExitLeft: () => navFocus[0].requestFocus(),
-                  onFocused: (a) {
-                    if (animeId(focusedTitle ?? {}) != animeId(a)) {
-                      setState(() => focusedTitle = a);
-                    }
-                  },
+                  onFocused: focusTitle,
                 ),
               ),
               const SizedBox(height: 20),
@@ -796,6 +822,7 @@ class _ShellState extends State<Shell> {
                     key: const ValueKey('home-catalog'),
                     items: items,
                     onOpen: open,
+                    onFocused: focusTitle,
                     autofocus: false,
                     onExitLeft: () => navFocus[0].requestFocus(),
                   ),
@@ -863,11 +890,7 @@ class _ShellState extends State<Shell> {
             onRemove: removeHistory,
             onExitLeft: () => navFocus[2].requestFocus(),
             recency: (a) => historyRecency(widget.session.historyDate(a)),
-            onFocused: (a) {
-              if (animeId(focusedTitle ?? {}) != animeId(a)) {
-                setState(() => focusedTitle = a);
-              }
-            },
+            onFocused: focusTitle,
           ),
         ),
       ],

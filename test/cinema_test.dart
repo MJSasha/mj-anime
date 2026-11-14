@@ -276,6 +276,194 @@ void main() {
     },
   );
 
+  test('Banner candidates stay within the title and skip empty artwork', () {
+    expect(
+      sceneryImages({
+        'banner_url': '  ',
+        'screenshots': [
+          '',
+          {'url': '/own-shot.jpg'},
+        ],
+        'anime_poster_url': '',
+        'poster_url': '/own-poster.jpg',
+      }),
+      ['/own-shot.jpg', '/own-poster.jpg'],
+    );
+    expect(
+      sceneryImages({
+        'banner_url': '/own-banner.jpg',
+        'screenshots': ['/own-shot.jpg'],
+        'poster_url': '/own-poster.jpg',
+      }),
+      ['/own-banner.jpg', '/own-shot.jpg', '/own-poster.jpg'],
+    );
+    expect(sceneryImages({}), isEmpty);
+  });
+
+  testWidgets(
+    'Home uses the focused history title even when it is absent from the catalog',
+    (t) async {
+      final ownPoster = poster(catalog[1]);
+      await session.prefs.setString(
+        'history',
+        jsonEncode([
+          {
+            'animetka_id': 987654,
+            'material': {
+              'id': 987654,
+              'title': 'Другой тайтл без баннера',
+              'anime_poster_url': '',
+              'poster_url': ownPoster,
+            },
+            'episode': 2,
+            'timestamp': 30,
+            'duration': 1440,
+          },
+        ]),
+      );
+      await mount(t, TvApp(session: session));
+      final card = find.byWidgetPredicate(
+        (w) => w is AnimeCard && animeId(w.anime) == 987654,
+      );
+      Focus.of(
+        t.element(
+          find.descendant(of: card, matching: find.byType(InkWell)).first,
+        ),
+      ).requestFocus();
+      await settle(t);
+      final hero = find.byKey(const ValueKey('home-hero'));
+      expect(
+        find.descendant(
+          of: hero,
+          matching: find.text('Другой тайтл без баннера'),
+        ),
+        findsOneWidget,
+      );
+      final image = t.widget<Image>(
+        find.descendant(of: hero, matching: find.byType(Image)).first,
+      );
+      final provider = image.image is ResizeImage
+          ? (image.image as ResizeImage).imageProvider
+          : image.image;
+      expect((provider as NetworkImage).url, absolute(ownPoster));
+      expect(find.byKey(const ValueKey('hero-bottom-blend')), findsOneWidget);
+      final catalogCard = find
+          .descendant(
+            of: find.byKey(const ValueKey('home-catalog')),
+            matching: find.byType(AnimeCard),
+          )
+          .at(1);
+      Focus.of(
+        t.element(
+          find
+              .descendant(of: catalogCard, matching: find.byType(InkWell))
+              .first,
+        ),
+      ).requestFocus();
+      await settle(t);
+      final scroll = t.state<ScrollableState>(
+        find
+            .descendant(
+              of: find.byKey(const ValueKey('home-scroll')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      scroll.position.jumpTo(0);
+      await settle(t);
+      expect(
+        find.descendant(of: hero, matching: find.text(title(catalog[1]))),
+        findsOneWidget,
+      );
+      await clean(t);
+    },
+  );
+
+  testWidgets(
+    'Broken banner tries its own poster and empty artwork has a neutral placeholder',
+    (t) async {
+      final bad = 'https://fixtures.invalid/broken-banner.jpg';
+      final good = poster(catalog[1]);
+      images[bad] = Uint8List(0);
+      addTearDown(() => images.remove(bad));
+      await mount(
+        t,
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 400,
+              child: photo(bad, fallbacks: [good]),
+            ),
+          ),
+        ),
+      );
+      expect(find.byKey(ValueKey(good)), findsOneWidget);
+      await t.pumpWidget(MaterialApp(home: Scaffold(body: photo(''))));
+      await settle(t);
+      expect(find.byIcon(Icons.movie_outlined), findsOneWidget);
+      expect(find.byType(Image), findsNothing);
+      await clean(t);
+    },
+  );
+
+  testWidgets(
+    'Category activation preserves neighbouring tab bounds and remote focus',
+    (t) async {
+      await session.prefs.setString(
+        'history',
+        jsonEncode([
+          {
+            'animetka_id': animeId(catalog.first),
+            'material': catalog.first,
+            'episode': 3,
+            'timestamp': 239,
+            'duration': 1440,
+          },
+        ]),
+      );
+      await mount(t, TvApp(session: session));
+      final names = ['Подборка', 'Рекомендации', 'Топ', 'Фильмы', 'Онгоинги'];
+      Finder button(String name) => find.widgetWithText(TvButton, name);
+      final top = button('Топ');
+      await t.ensureVisible(top);
+      Focus.of(
+        t.element(
+          find.descendant(of: top, matching: find.byType(InkWell)).first,
+        ),
+      ).requestFocus();
+      await settle(t);
+      final before = [for (final name in names) t.getRect(button(name))];
+      await t.sendKeyEvent(LogicalKeyboardKey.select);
+      for (var i = 0; i < 12; i++) {
+        await t.pump(const Duration(milliseconds: 16));
+        for (var j = 0; j < names.length; j++) {
+          expect(
+            t.getRect(button(names[j])),
+            before[j],
+            reason: 'Category layout moved during selection',
+          );
+        }
+      }
+      await settle(t);
+      expect(find.byKey(const ValueKey('home-catalog')), findsOneWidget);
+      expect(
+        Focus.of(
+          t.element(
+            find.descendant(of: top, matching: find.byType(InkWell)).first,
+          ),
+        ).hasFocus,
+        isTrue,
+      );
+      await press(t, LogicalKeyboardKey.arrowRight);
+      await press(t, LogicalKeyboardKey.select);
+      for (var j = 0; j < names.length; j++) {
+        expect(t.getRect(button(names[j])), before[j]);
+      }
+      await clean(t);
+    },
+  );
+
   testWidgets(
     'Cinematic screens render with real offline artwork; episode numbers survive reverse order',
     (t) async {
@@ -321,7 +509,42 @@ void main() {
       Focus.of(t.element(episode)).requestFocus();
       await settle(t);
       await shot(t, '03-episodes');
-      await t.tap(find.text('Сначала старые'));
+      expect(find.text('С первой серии'), findsNothing);
+      final restart = find.byTooltip('С первой серии');
+      expect(
+        t.getTopLeft(restart).dy,
+        lessThan(t.getTopLeft(find.text('Серии')).dy),
+      );
+      final voice = find.byTooltip('Озвучка');
+      expect(
+        (t.getCenter(voice).dy - t.getCenter(find.text('Сначала старые')).dy)
+            .abs(),
+        lessThan(2),
+      );
+      final voiceLabel = find.descendant(
+        of: voice,
+        matching: find.text('AniLibria'),
+      );
+      final voiceArrow = find.descendant(
+        of: voice,
+        matching: find.byIcon(Icons.expand_more_rounded),
+      );
+      expect(
+        t.getTopLeft(voiceArrow).dx - t.getTopRight(voiceLabel).dx,
+        closeTo(8, .01),
+      );
+      final voiceControl = find
+          .descendant(of: voice, matching: find.byType(InkWell))
+          .first;
+      Focus.of(t.element(voiceControl)).requestFocus();
+      await settle(t);
+      await press(t, LogicalKeyboardKey.select);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      await t.binding.handlePopRoute();
+      await settle(t);
+      expect(Focus.of(t.element(voiceControl)).hasFocus, isTrue);
+      await press(t, LogicalKeyboardKey.arrowRight);
+      await press(t, LogicalKeyboardKey.select);
       await settle(t);
       expect(find.text('22'), findsOneWidget);
       await shot(t, '04-episodes-reversed');
