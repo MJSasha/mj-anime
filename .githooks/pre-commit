@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+python3 tools/repo_check.py
+git diff --cached --check

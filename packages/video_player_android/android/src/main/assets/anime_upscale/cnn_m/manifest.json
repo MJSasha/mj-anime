@@ -1,0 +1,72 @@
+[
+  {
+    "file": "anime_upscale/cnn_m/0.glsl",
+    "inputs": [
+      -1
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_m/1.glsl",
+    "inputs": [
+      0
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_m/2.glsl",
+    "inputs": [
+      1
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_m/3.glsl",
+    "inputs": [
+      2
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_m/4.glsl",
+    "inputs": [
+      3
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_m/5.glsl",
+    "inputs": [
+      4
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_m/6.glsl",
+    "inputs": [
+      5
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_m/7.glsl",
+    "inputs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_m/8.glsl",
+    "inputs": [
+      -1,
+      7
+    ],
+    "double": true
+  }
+]

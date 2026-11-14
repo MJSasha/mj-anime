@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources><style name="LaunchTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">#0c0e15</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_mjanime</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#0c0e15</item>
+    </style>
+</resources>

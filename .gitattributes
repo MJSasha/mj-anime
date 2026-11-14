@@ -1,0 +1,14 @@
+* text=auto
+*.sh text eol=lf
+*.dart text eol=lf
+*.kt text eol=lf
+*.java text eol=lf
+*.glsl text eol=lf
+*.md text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.img binary
+*.ttf binary
+*.mp4 binary
+*.jar binary

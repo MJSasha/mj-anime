@@ -1,0 +1,12 @@
+{
+  "S": {
+    "source": "https://raw.githubusercontent.com/bloc97/Anime4K/v4.0.1/glsl/Upscale/Anime4K_Upscale_CNN_x2_S.glsl",
+    "sha256": "4c53ec2e287908f7ee7bcb266b0170421626d663576468b7d7dafc62962649a4",
+    "passes": 5
+  },
+  "M": {
+    "source": "https://raw.githubusercontent.com/bloc97/Anime4K/v4.0.1/glsl/Upscale/Anime4K_Upscale_CNN_x2_M.glsl",
+    "sha256": "716e02098a68f0d648761f2b96b4dd139e1cb09b174bb369fca3aa34328fff7e",
+    "passes": 9
+  }
+}

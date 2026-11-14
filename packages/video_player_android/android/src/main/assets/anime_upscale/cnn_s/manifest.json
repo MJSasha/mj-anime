@@ -1,0 +1,38 @@
+[
+  {
+    "file": "anime_upscale/cnn_s/0.glsl",
+    "inputs": [
+      -1
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_s/1.glsl",
+    "inputs": [
+      0
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_s/2.glsl",
+    "inputs": [
+      1
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_s/3.glsl",
+    "inputs": [
+      2
+    ],
+    "double": false
+  },
+  {
+    "file": "anime_upscale/cnn_s/4.glsl",
+    "inputs": [
+      -1,
+      3
+    ],
+    "double": true
+  }
+]
